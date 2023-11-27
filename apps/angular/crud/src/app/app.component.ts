@@ -1,32 +1,30 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { randText } from '@ngneat/falso';
+import { TodoService } from './services/todo.service';
 
 @Component({
   standalone: true,
   imports: [CommonModule],
   selector: 'app-root',
   template: `
-    <div *ngFor="let todo of todos">
+    <div *ngFor="let todo of todos$ | async">
       {{ todo.title }}
       <button (click)="update(todo)">Update</button>
     </div>
   `,
   styles: [],
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   todos!: any[];
 
-  constructor(private http: HttpClient) {}
+  todos$ = this.todoService.getTodos();
 
-  ngOnInit(): void {
-    this.http
-      .get<any[]>('https://jsonplaceholder.typicode.com/todos')
-      .subscribe((todos) => {
-        this.todos = todos;
-      });
-  }
+  constructor(
+    private http: HttpClient,
+    private todoService: TodoService,
+  ) {}
 
   update(todo: any) {
     this.http
@@ -42,7 +40,7 @@ export class AppComponent implements OnInit {
           headers: {
             'Content-type': 'application/json; charset=UTF-8',
           },
-        }
+        },
       )
       .subscribe((todoUpdated: any) => {
         this.todos[todoUpdated.id - 1] = todoUpdated;
